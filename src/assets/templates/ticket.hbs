@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket de Venta</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        body {
+            width: 80mm;
+            padding: 5mm;
+            color: #000;
+            font-size: 12px;
+            background-color: white;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        .bold { font-weight: bold; }
+        .mb-2 { margin-bottom: 2mm; }
+        .mb-4 { margin-bottom: 4mm; }
+        .border-bottom { border-bottom: 1px dashed #000; padding-bottom: 2mm; margin-bottom: 2mm; }
+        .border-top { border-top: 1px dashed #000; padding-top: 2mm; margin-top: 2mm; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 1mm 0;
+            vertical-align: top;
+        }
+        th {
+            text-align: left;
+            border-bottom: 1px dashed #000;
+        }
+        .item-desc {
+            font-size: 11px;
+            width: 50%;
+        }
+        .item-qty {
+            width: 15%;
+            text-align: center;
+        }
+        .item-price {
+            width: 35%;
+            text-align: right;
+        }
+        .totals-table {
+            width: 100%;
+            margin-top: 2mm;
+        }
+        .totals-table td {
+            padding: 0.5mm 0;
+        }
+        .title {
+            font-size: 16px;
+            margin-bottom: 2mm;
+        }
+    </style>
+</head>
+<body>
+    <div class="text-center border-bottom">
+        <h1 class="title bold">LUBRITECH</h1>
+        <p>RUC: 20123456789</p>
+        <p>Av. Principal 123, Lima</p>
+        <p>Tel: (01) 234-5678</p>
+    </div>
+
+    <div class="text-center mb-2">
+        <h2 class="bold" style="font-size: 14px;">TICKET DE VENTA</h2>
+        <p class="bold">{{ticketNumber}}</p>
+    </div>
+
+    <div class="border-bottom mb-2">
+        <p><strong>Fecha:</strong> {{date}}</p>
+        <p><strong>Cliente:</strong> {{customerName}}</p>
+        <p><strong>Doc:</strong> {{customerDoc}}</p>
+    </div>
+
+    <table class="border-bottom">
+        <thead>
+            <tr>
+                <th class="item-qty">CANT</th>
+                <th class="item-desc">DESCRIPCIÓN</th>
+                <th class="item-price">IMPORTE</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each items}}
+            <tr>
+                <td class="item-qty text-center">{{quantity}}</td>
+                <td class="item-desc">{{description}}</td>
+                <td class="item-price">S/ {{subtotal}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <table class="totals-table border-bottom">
+        <tr>
+            <td class="text-right bold">TOTAL:</td>
+            <td class="text-right bold" style="width: 35%;">S/ {{total}}</td>
+        </tr>
+    </table>
+
+    <div class="text-center mb-4">
+        <p>¡Gracias por su preferencia!</p>
+        <p>Vuelva pronto.</p>
+    </div>
+</body>
+</html>

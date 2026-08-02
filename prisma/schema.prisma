@@ -1,0 +1,374 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------
+// Global Status Table
+// ---------------------------------------------------------
+
+model Status {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  customers     Customer[]
+  products      Product[]
+  suppliers     Supplier[]
+  serviceOrders ServiceOrder[]
+  purchases     Purchase[]
+  categories    Category[]
+  sales         Sale[]
+  users         User[]
+
+  @@map("status")
+}
+
+// ---------------------------------------------------------
+// Entities
+// ---------------------------------------------------------
+
+model Customer {
+  id             String  @id @default(uuid())
+  code           String? @map("code") @db.VarChar(30)
+  name           String  @map("name") @db.VarChar(200)
+  documentType   String  @default("RUC") @map("documentType") @db.VarChar(10)
+  documentNumber String? @map("documentNumber") @db.VarChar(20)
+  email          String? @db.VarChar(200)
+  phone          String? @map("phone") @db.VarChar(30)
+  address        String? @map("address") @db.Text
+  district       String? @map("district") @db.VarChar(100)
+  province       String? @map("province") @db.VarChar(100)
+  department     String? @map("department") @db.VarChar(100)
+  ubigeo         String? @db.VarChar(6)
+  vehicleCount   Int     @default(0)
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  statusId      String
+  status        Status         @relation(fields: [statusId], references: [id])
+  sales         Sale[]
+  serviceOrders ServiceOrder[]
+
+  @@map("customers")
+}
+
+model Product {
+  id            String @id @default(uuid())
+  name          String
+  type          String // "Product" | "Service"
+  purchasePrice Float  @default(0) @map("purchase_price")
+  salePrice     Float  @map("sale_price")
+  stock         Int    @default(0)
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  statusId          String
+  status            Status             @relation(fields: [statusId], references: [id])
+  categoryId        String?
+  category          Category?          @relation(fields: [categoryId], references: [id])
+  movements         Movement[]
+  purchaseItems     PurchaseItem[]
+  saleItems         SaleItem[]
+  serviceOrderItems ServiceOrderItem[]
+
+  @@map("products")
+}
+
+model Supplier {
+  id             String  @id @default(uuid())
+  company        String
+  documentType   String  @default("RUC") @map("documentType") @db.VarChar(10)
+  documentNumber String  @unique @map("documentNumber") @db.VarChar(20)
+  contact        String?
+  phone          String?
+  email          String?
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  statusId  String
+  status    Status     @relation(fields: [statusId], references: [id])
+  purchases Purchase[]
+
+  @@map("suppliers")
+}
+
+// ---------------------------------------------------------
+// Service Orders (Mantenimiento / Órdenes de Servicio)
+// ---------------------------------------------------------
+
+model ServiceOrder {
+  id           String   @id @default(uuid())
+  date         DateTime @default(now())
+  plate        String   @db.VarChar(20)
+  vehicleModel String   @map("vehicle_model") @db.VarChar(100)
+  mileage      Int      @default(0)
+  notes        String?  @db.Text
+  orderStatus  String   @default("Pendiente") @map("order_status") @db.VarChar(30) // "Pendiente" | "En Proceso" | "Completado"
+  total        Float    @default(0)
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  statusId   String
+  status     Status             @relation(fields: [statusId], references: [id])
+  customerId String
+  customer   Customer           @relation(fields: [customerId], references: [id])
+  saleId     String?            @unique @map("sale_id")
+  sale       Sale?              @relation(fields: [saleId], references: [id])
+  items      ServiceOrderItem[]
+
+  @@map("service_orders")
+}
+
+model ServiceOrderItem {
+  id          String @id @default(uuid())
+  type        String @db.VarChar(20) // "Product" | "Service"
+  description String @db.VarChar(200)
+  quantity    Int
+  unitPrice   Float  @map("unit_price")
+  subtotal    Float
+
+  // Relations
+  serviceOrderId String
+  serviceOrder   ServiceOrder @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  productId      String?
+  product        Product?     @relation(fields: [productId], references: [id])
+
+  @@map("service_order_items")
+}
+
+// ---------------------------------------------------------
+// Purchases (Compras)
+// ---------------------------------------------------------
+
+model Purchase {
+  id       String   @id @default(uuid())
+  date     DateTime @default(now())
+  document String
+  total    Float
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  statusId   String
+  status     Status         @relation(fields: [statusId], references: [id])
+  supplierId String
+  supplier   Supplier       @relation(fields: [supplierId], references: [id])
+  items      PurchaseItem[]
+
+  @@map("purchases")
+}
+
+model PurchaseItem {
+  id         String   @id @default(uuid())
+  purchaseId String
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Int
+  unitPrice  Float    @map("unit_price")
+  subtotal   Float
+
+  @@map("purchase_items")
+}
+
+// ---------------------------------------------------------
+// Categories
+// ---------------------------------------------------------
+
+model Category {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  statusId String
+  status   Status    @relation(fields: [statusId], references: [id])
+  products Product[]
+
+  @@map("categories")
+}
+
+// ---------------------------------------------------------
+// Inventory Movements
+// ---------------------------------------------------------
+
+model Movement {
+  id        String   @id @default(uuid())
+  date      DateTime @default(now())
+  type      String // "In" | "Out" | "Return" | "Consumption"
+  quantity  Int
+  reference String?
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("movements")
+}
+
+// ---------------------------------------------------------
+// Sales (Ventas)
+// ---------------------------------------------------------
+
+model Sale {
+  id             String   @id @default(uuid())
+  date           DateTime @default(now())
+  documentType   String   @default("Boleta") @map("document_type") @db.VarChar(20) // "Boleta" | "Factura" | "Ticket"
+  documentNumber String   @map("document_number") @db.VarChar(30)
+  origin         String   @default("Direct") @db.VarChar(20) // "Direct" | "Service"
+  subtotal       Float    @default(0)
+  tax            Float    @default(0)
+  total          Float    @default(0)
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  statusId     String
+  status       Status        @relation(fields: [statusId], references: [id])
+  customerId   String
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  items        SaleItem[]
+  serviceOrder ServiceOrder?
+
+  @@map("sales")
+}
+
+model SaleItem {
+  id          String @id @default(uuid())
+  type        String @db.VarChar(20) // "Product" | "Service"
+  description String @db.VarChar(200)
+  quantity    Int
+  unitPrice   Float  @map("unit_price")
+  subtotal    Float
+
+  // Relations
+  saleId    String
+  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+
+  @@map("sale_items")
+}
+
+// ---------------------------------------------------------
+// Auth, Users & Sessions
+// ---------------------------------------------------------
+
+model Role {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users User[]
+
+  @@map("roles")
+}
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String // Password hash
+  name     String
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  statusId String
+  status   Status @relation(fields: [statusId], references: [id])
+  roleId   String
+  role     Role   @relation(fields: [roleId], references: [id])
+
+  sessions  Session[]
+  auditLogs AuditLog[]
+
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt    DateTime
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sessions")
+}
+
+// ---------------------------------------------------------
+// Audit Log (Traceability)
+// ---------------------------------------------------------
+
+model AuditLog {
+  id       String  @id @default(uuid())
+  action   String // e.g. "CREATE", "UPDATE", "DELETE", "LOGIN"
+  entity   String // e.g. "Sale", "Product", "User"
+  entityId String? // ID of the affected record
+  details  String? // Additional details, JSON string with changes
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+// ---------------------------------------------------------
+// System Configuration & Licensing
+// ---------------------------------------------------------
+
+model SystemConfig {
+  id             String   @id @default(uuid())
+  clientName     String   @unique @map("client_name")
+  expirationDate DateTime
+  isActive       Boolean  @default(true)
+  updatedAt      DateTime @updatedAt
+
+  @@map("system_config")
+}
