@@ -12,6 +12,43 @@ El backend de Lubritech sigue los principios de una arquitectura modular y en ca
 
 Además de esto, el sistema se apoya en **Puppeteer** y **Handlebars** para la generación dinámica de reportes y tickets en PDF, y se integra de forma externa (Scraping/APIs) para autocompletar información de DNI/RUC vía SUNAT/RENIEC.
 
+### Diagrama de Arquitectura y Tecnologías
+
+```mermaid
+flowchart TD
+    %% Nodos principales
+    Client(["💻 Frontend / Cliente (React/Next.js)"])
+    
+    subgraph Backend ["Backend System (Node.js + NestJS)"]
+        API["🌐 REST API (Controllers)"]
+        Services["⚙️ Business Logic (Services)"]
+        ORM["🗄️ Prisma ORM"]
+        Puppeteer["🖨️ Puppeteer (Generación PDF)"]
+        
+        API <--> Services
+        Services <--> ORM
+        Services --> Puppeteer
+    end
+
+    subgraph Data ["Bases de Datos y Almacenamiento"]
+        Postgres[("🐘 PostgreSQL (BD Principal)")]
+        Redis[("⚡ Redis (Caché y Sesiones)")]
+        S3[("☁️ AWS S3 (Archivos/Imágenes)")]
+    end
+
+    subgraph External ["Servicios Externos"]
+        SUNAT["🏢 SUNAT / RENIEC (APIs/Scraping)"]
+    end
+
+    %% Conexiones externas
+    Client <-->|HTTP/REST| API
+    
+    ORM <--> Postgres
+    Services <--> Redis
+    Services --> S3
+    Services <--> SUNAT
+```
+
 ---
 
 ## 🎭 Diagrama de Casos de Uso y Actores
