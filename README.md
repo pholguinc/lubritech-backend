@@ -17,47 +17,54 @@ Además de esto, el sistema se apoya en **Puppeteer** y **Handlebars** para la g
 ## 🎭 Diagrama de Casos de Uso y Actores
 
 ```mermaid
-usecaseDiagram
-    actor Administrador as "Admin"
-    actor Vendedor as "Cajero / Vendedor"
-    actor Mecanico as "Técnico / Mecánico"
+flowchart LR
+    %% Actores
+    Admin(["🧑‍💻 Administrador"])
+    Vendedor(["👨‍💼 Cajero / Vendedor"])
+    Mecanico(["🔧 Técnico / Mecánico"])
 
-    package "Módulo de Ventas e Inventario" {
-        usecase UC1 as "Registrar Venta Directa"
-        usecase UC2 as "Generar Ticket de Venta PDF"
-        usecase UC3 as "Gestionar Productos/Categorías"
-        usecase UC4 as "Registrar Compras a Proveedores"
-        usecase UC5 as "Ver Movimientos (Kardex)"
-    }
+    %% Casos de Uso
+    subgraph Ventas ["Módulo de Ventas e Inventario"]
+        direction TB
+        UC1([Registrar Venta Directa])
+        UC2([Generar Ticket de Venta PDF])
+        UC3([Gestionar Productos/Categorías])
+        UC4([Registrar Compras a Proveedores])
+        UC5([Ver Movimientos Kardex])
+    end
 
-    package "Módulo de Servicios Automotrices" {
-        usecase UC6 as "Crear Orden de Servicio"
-        usecase UC7 as "Asignar Técnico/Placa"
-        usecase UC8 as "Facturar Orden de Servicio"
-    }
+    subgraph Servicios ["Módulo de Servicios Automotrices"]
+        direction TB
+        UC6([Crear Orden de Servicio])
+        UC7([Asignar Técnico/Placa])
+        UC8([Facturar Orden de Servicio])
+    end
 
-    package "Reportes y Administración" {
-        usecase UC9 as "Ver Dashboard y KPIs"
-        usecase UC10 as "Administrar Usuarios y Accesos"
-        usecase UC11 as "Consultar DNI/RUC (Externa)"
-    }
+    subgraph Reportes ["Reportes y Administración"]
+        direction TB
+        UC9([Ver Dashboard y KPIs])
+        UC10([Administrar Usuarios y Accesos])
+        UC11([Consultar DNI/RUC Externa])
+    end
 
-    Vendedor --> UC1
-    Vendedor --> UC2
-    Vendedor --> UC11
+    %% Relaciones Vendedor
+    Vendedor -.-> UC1
+    Vendedor -.-> UC2
+    Vendedor -.-> UC11
 
-    Mecanico --> UC6
-    Mecanico --> UC7
+    %% Relaciones Mecánico
+    Mecanico -.-> UC6
+    Mecanico -.-> UC7
 
-    Administrador --> UC1
-    Administrador --> UC2
-    Administrador --> UC3
-    Administrador --> UC4
-    Administrador --> UC5
-    Administrador --> UC8
-    Administrador --> UC9
-    Administrador --> UC10
-    Administrador --> UC11
+    %% Relaciones Administrador (Acceso Total)
+    Admin ==> UC1
+    Admin ==> UC3
+    Admin ==> UC4
+    Admin ==> UC5
+    Admin ==> UC8
+    Admin ==> UC9
+    Admin ==> UC10
+    Admin ==> UC11
 ```
 
 ---
